@@ -4,6 +4,8 @@
 #include<ctype.h>
 #include<math.h>
 
+#define TAMANO_CADENA 1000
+
 void poper(char);
 int yyerror(char const *) ;
 int yylex(void) ;
@@ -11,12 +13,26 @@ int yylex(void) ;
 extern int pos;
 
 %}
+
 %union {
-	float real;
+	double real;
+    char caracter;
+	char cadenaReservada[TAMANO_CADENA];
+    int logico;
 }
 
-%token<real> DIGIT
-%type<real> expr
+
+%token<real> DIGITO
+%token<logico> BOOLEANO
+%token<caracter> LETRA
+%token<cadenaReservada> CADENA
+%token<cadenaReservada> PALABRACLAVE
+
+%type<real> exprNumerica
+%type<logico> exprLogica
+%type<caracter> exprCaracter
+%type<cadenaReservada> exprCadena
+
 
 %left '+' '-'
 %left '*' '/'
@@ -30,14 +46,14 @@ extern int pos;
 start : expr'\n' 		{printf("Resultado: %f\n", $1); exit(1);}
       ;
 
-expr:	'-'expr			{$$ = (-1)*$2; poper('S');}
-	| expr '+' expr     {$$ = $1 + $3 ; poper('+');}
-	| expr '-' expr		{$$ = $1 - $3 ; poper('-');}		
-    | expr '*' expr     {$$ = $1 * $3 ; poper('*');}
-	| expr '/' expr     {$$ = $1 / $3 ; poper('/');}
-	| expr '^' expr     {
+expr:	'-'expr			{$$ = (-1)*$2; }
+	| expr '+' expr     {$$ = $1 + $3 ; }
+	| expr '-' expr		{$$ = $1 - $3 ; }		
+    | expr '*' expr     {$$ = $1 * $3 ; }
+	| expr '/' expr     {$$ = $1 / $3 ; }
+	| expr '**' expr     {
 						$$ = pow($1,$3);
-						poper('^');
+						;
 						}	
     | '(' expr ')'		{$$ = $2 ;}
     | DIGIT      		{$$ = $1 ; printf("NUM(%d) ",pos);}   
