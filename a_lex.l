@@ -26,7 +26,7 @@ false   {
 }
 \".+\" {
 			pos++;
-			strcpy(yylval.cadena, yytext);
+			strcpy(yylval.cadenaReservada, yytext);
 			return (CADENA);
 }
 
