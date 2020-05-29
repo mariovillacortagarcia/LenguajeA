@@ -26,10 +26,10 @@ extern int pos;
 %token<cadenaReservada> CADENA
 %token<cadenaReservada> PALABRACLAVE
 
-%type<real> exprNumerica
-%type<logico> exprLogica
-%type<caracter> exprCaracter
-%type<cadenaReservada> exprCadena
+%type<real> expresionNumerica
+%type<logico> expresionLogica
+%type<caracter> expresionCaracter
+%type<cadenaReservada> expresionCadena
 
 
 %left '+' '-'
@@ -51,31 +51,39 @@ sentenciaSimple :	declaracion
 								| asignacion
 								| condicional
 								| bucle
+								| metodo
 								;
-declaracion : 'var' VARIABLE
-						;
 sentenciaBloque : sentenciaSimple ';' sentenciaBloque
-								| sentenciaSimple ';'
-asignacion : variable '=' expresion
-					 ;
+		 						| sentenciaSimple ';'
+								;
+declaracion : 'var' CADENA	{
+													double $2_num;
+													char $2_car;
+													char $2_cad[1000];
+													}
+						;
+asignacion : variable '=' expresionLogica	{$1_num = $3;}
+ 					 | variable '=' expresionNumerica	{$1_num = $3;}
+					 | variable '=' expresionCaracter	{$1_car = $3;}
+					 | variable '=' expresionCadena	{strcpy($1_cad, $3);}
+				 	 ;
 condicional : condicionalSimple
 						| condicionalDoble
 						;
 condicionalSimple : 'if' '('expresionLogica ')' sentencia
 									;
 condicionalDoble : condicionalSimple 'else' sentencia
-
-
-exprNumerica:	'-'exprNumerica			{$$ = (-1)*$2; }
-	| exprNumerica '+' exprNumerica     {$$ = $1 + $3 ; }
-	| exprNumerica '-' exprNumerica		{$$ = $1 - $3 ; }
-    | exprNumerica '*' exprNumerica     {$$ = $1 * $3 ; }
-	| exprNumerica '/' exprNumerica     {$$ = $1 / $3 ; }
-	| exprNumerica '^' exprNumerica     {
+								 ;
+expresionNumerica:	'-'expresionNumerica			{$$ = (-1)*$2; }
+	| expresionNumerica '+' expresionNumerica     {$$ = $1 + $3 ; }
+	| expresionNumerica '-' expresionNumerica		{$$ = $1 - $3 ; }
+  | expresionNumerica '*' expresionNumerica     {$$ = $1 * $3 ; }
+	| expresionNumerica '/' expresionNumerica     {$$ = $1 / $3 ; }
+	| expresionNumerica '^' expresionNumerica     {
 						$$ = pow($1,$3);
 						;
 						}
-    | '(' exprNumerica ')'		{$$ = $2 ;}
+    | '(' expresionNumerica ')'		{$$ = $2 ;}
     | DIGITO      		{$$ = $1 ; printf("NUM(%d) ",pos);}
 	;
 
