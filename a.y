@@ -41,20 +41,42 @@ extern int pos;
 
 %%
 
-start : exprNumerica'\n' 		{printf("Resultado: %f\n", $1); exit(1);}
+start : sentencia
       ;
+
+sentencia : sentenciaSimple
+					| sentenciaBloque
+					;
+sentenciaSimple :	declaracion
+								| asignacion
+								| condicional
+								| bucle
+								;
+declaracion : 'var' VARIABLE
+						;
+sentenciaBloque : sentenciaSimple ';' sentenciaBloque
+								| sentenciaSimple ';'
+asignacion : variable '=' expresion
+					 ;
+condicional : condicionalSimple
+						| condicionalDoble
+						;
+condicionalSimple : 'if' '('expresionLogica ')' sentencia
+									;
+condicionalDoble : condicionalSimple 'else' sentencia
+
 
 exprNumerica:	'-'exprNumerica			{$$ = (-1)*$2; }
 	| exprNumerica '+' exprNumerica     {$$ = $1 + $3 ; }
-	| exprNumerica '-' exprNumerica		{$$ = $1 - $3 ; }		
+	| exprNumerica '-' exprNumerica		{$$ = $1 - $3 ; }
     | exprNumerica '*' exprNumerica     {$$ = $1 * $3 ; }
 	| exprNumerica '/' exprNumerica     {$$ = $1 / $3 ; }
 	| exprNumerica '^' exprNumerica     {
 						$$ = pow($1,$3);
 						;
-						}	
+						}
     | '(' exprNumerica ')'		{$$ = $2 ;}
-    | DIGITO      		{$$ = $1 ; printf("NUM(%d) ",pos);}   
+    | DIGITO      		{$$ = $1 ; printf("NUM(%d) ",pos);}
 	;
 
 %%
