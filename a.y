@@ -141,6 +141,11 @@ funcionNumerica:
 		|	LOG '('expresionNumerica ',' expresionNumerica  ')'		{$$ = log10($5) / log10($3); }
 		;
 
+cadena:
+			"HOLA"
+imprimir:
+			PRINTF '(' expresion ')'
+
 
 
 %%
