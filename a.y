@@ -40,6 +40,7 @@ extern int pos;
 %token MCM
 %token MCD
 %token LOG
+%token CADENACARAC
 
 
 %type<real> expresionNumerica
@@ -124,12 +125,22 @@ expresionLogica:
 		| 	expresionLogica '&' expresionLogica	  	{$$ = $1 & $3 ; }
 		| 	expresionLogica '>' expresionLogica     {$$ = $1 > $3 ; }
 		| 	expresionLogica '>=' expresionLogica    {$$ = $1 >= $3 ; }
-		| 	expresionLogica '<' expresionLogica     {$$ = $1 < $3 ; }
-		| 	expresionLogica '<=' expresionLogica    {$$ = $1 <= $3 ; }
-		| 	expresionLogica '==' expresionLogica    {$$ = $1 == $3 ; }
-		| 	expresionLogica '!=' expresionLogica    {$$ = $1 != $3 ; }
+		| 	expresionNumerica '<' expresionNumerica     {$$ = $1 < $3 ; }
+		| 	expresionNumerica '<=' expresionNumerica    {$$ = $1 <= $3 ; }
+		| 	expresionCaracter '<' expresionCaracter     {$$ = $1 < $3 ; }
+		| 	expresionCaracter '<=' expresionCaracter    {$$ = $1 <= $3 ; }
+		| 	expresion '==' expresion    {$$ = $1 == $3 ; }
+		| 	expresion '!=' expresion    {$$ = $1 != $3 ; }
 		| 	'(' expresionLogica ')'					{$$ = $2 ;} 
     	| 	BOOLEANO      							{$$ = $1 ;}
+		;
+expresionCaracter:	
+			expresionCaracter '+' expresionCaracter     {$$ = $1 + $3 ; }
+		| 	expresionCaracter '-' expresionCaracter	  	{$$ = $1 - $3 ; }
+		| 	expresionCaracter '*' expresionCaracter     {$$ = $1 * $3 ; }
+		| 	expresionCaracter '/' expresionCaracter     {$$ = $1 / $3 ; }
+    	| 	'(' expresionCaracter ')'					{$$ = $2 ;}
+    	| 	CARACTER      								{$$ = $1 ;}
 		;
 funcionNumerica:
 			SIN '(' expresionNumerica ')'							{$$ = sin($3) ; }
@@ -141,10 +152,14 @@ funcionNumerica:
 		|	LOG '('expresionNumerica ',' expresionNumerica  ')'		{$$ = log10($5) / log10($3); }
 		;
 
+
 cadena:
-			"HOLA"
+			'"' CADENACARAC '"'	{$$ = "$2"}
+		|	'"' CADENACARAC '"' ',' 
+		|	
 imprimir:
-			PRINTF '(' expresion ')'
+			PRINTF '(' cadena ')'
+		;
 
 
 
