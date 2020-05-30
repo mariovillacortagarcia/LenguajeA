@@ -29,8 +29,71 @@ false   {
 			strcpy(yylval.cadenaReservada, yytext);
 			return (CADENA);
 }
-
-("+"|"-"|"*"|"/"|"^"|"("|")"|"\n") {
+"if" {
+			pos++;
+			return (IF)
+}
+"else" {
+			pos++;
+			return (ELSE)
+}
+"do" {
+			pos++;
+			return (DO)
+}
+"while" {
+			pos++;
+			return (WHILE)
+}
+"printf" {
+			pos++;
+			return (PRINTF);
+}
+"scanf" {
+			pos++;
+			return (SCANF));
+}
+"var" {
+			pos++;
+			return (VAR);
+}
+"sin" {
+			pos++;
+			return (SIN);
+}
+"cos" {
+			pos++;
+			return (COS);
+}
+"tan" {
+			pos++;
+			return (TAN);
+}
+"arcsin" {
+			pos++;
+			return (ARCSIN);
+}
+"arccos" {
+			pos++;
+			return (ARCCOS);
+}
+"arctg" {
+			pos++;
+			return (ARCTG);
+}
+"mcm" {
+			pos++;
+			return (MCM);
+}
+"mcd" {
+			pos++;
+			return (MCD);
+}
+"log" {
+			pos++;
+			return (LOG);
+}
+("+"|"-"|"*"|"/"|"^"|"("|")"|";"|"|"|"&"|"!"|">"|">="|"<"|"<="|"=="|"!=") {
 	return yytext[0];
 }
 %%
