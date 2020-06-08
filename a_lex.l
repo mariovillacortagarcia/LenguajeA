@@ -1,4 +1,4 @@
-%{
+%{c
 	#include<stdio.h>
 	#include"y.tab.h"
 	int pos = 0;
@@ -8,6 +8,10 @@
 			pos++;
 			yylval.real = atof(yytext);
 			return (DIGITO);
+}
+([a-z]|[A-Z]|"_")+ {
+			strcpy(yyval.cadenaReservada,yytext);
+			return (NOMBRE);
 }
 true    {
 			pos++;
@@ -19,15 +23,10 @@ false   {
 			yylval.logico = 0;
 			return (BOOLEANO);
 }
-\'.\' {
+. {
 			pos++;
 			yylval.caracter = yytext;
 			return (CARACTER);
-}
-\".+\" {
-			pos++;
-			strcpy(yylval.cadenaReservada, yytext);
-			return (CADENA);
 }
 "if" {
 			pos++;

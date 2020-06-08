@@ -4,12 +4,30 @@
 #include<ctype.h>
 #include<math.h>
 
-void poper(char);
-int yyerror(char const *) ;
-int yylex(void) ;
+#define NUM_VARIABLES 100
+
+typedef struct Par{
+	char *clave;
+	double numerico;
+	char caracter;
+	char cadena[1000];
+	int logico;
+};
+void declara(char*);
+void setNumerico(char,double);
+void setCaracter(char,char);
+void setCadena(char,char*);
+void setLogico(char,int);
+double getNumerico(char*);
+char getCaracter(char*);
+char* getCadena(char*);
+int getLogico(char*);
+int yyerror(char const *);
+int yylex(void);
 
 extern int pos;
-
+Par variables[NUM_VARIABLES];
+int num_variable = 0;
 %}
 
 %union {
@@ -41,12 +59,13 @@ extern int pos;
 %token MCD
 %token LOG
 %token CADENACARAC
-
+%token<cadenaReservada> NOMBRE
 
 %type<real> expresionNumerica
 %type<logico> expresionLogica
 %type<caracter> expresionCaracter
 %type<cadenaReservada> expresionCadena
+
 
 
 %left '+' '-'
@@ -64,32 +83,31 @@ sentencia:
 		|	sentenciaBloque
 		;
 sentenciaSimple:
-				declaracion
-			|	asignacion
-			|	condicional
-			|	bucle
-			|	metodo
+				declaracion ';'
+			|	asignacion ';'
+			|	condicional ';'
+			|	bucle ';'
+			|	metodo ';'
+			;
+metodo:
+				PRINTF '(' expresionCadena ')'		{printf("%s",$3) ; }
+			|	SCANF '(' expresionCadena ')'		{scanf("%s", $3) ; }
 			;
 sentenciaBloque:
-				sentenciaSimple ';' sentenciaBloque
-		 	|	sentenciaSimple ';'
+				sentenciaSimple  sentenciaBloque
+		 	|	sentenciaSimple 
 			;
 declaracion: 
-			VAR CADENA	{
-				int $2_bool;
-				double $2_num;
-				char $2_car;
-				char $2_cad[1000];
-					}
-					;
+			VAR expresionCadena	{declara($2);}
+					; 
 asignacion:
-			variable '=' expresionLogica	{$1_bool = $3;}
-		|	variable '=' expresionNumerica	{$1_num = $3;}
-		|	variable '=' expresionCaracter	{$1_car = $3;}
-		|	variable '=' expresionCadena	{strcpy($1_cad, $3);}
+			variable '=' expresionLogica	{setLogico($1,$3);}
+		|	variable '=' expresionNumerica	{setNumerico($1,$3);}
+		|	variable '=' expresionCaracter	{setCara($1,$3);}
+		|	variable '=' expresionCadena	{setCadena($1, $3);}
 		;
 condicional:
-			condicionalSimple
+			condicionalSimple 
 		|	condicionalDoble
 		;
 condicionalSimple:
@@ -109,30 +127,39 @@ bucleHazMientras:
 			DO sentencia WHILE '(' expresionLogica ')'	{do $2 while($5)}
 		;
 expresionNumerica:	
-			funcionNumerica								{$$ = $1}
-		|	'-'expresionNumerica						{$$ = (-1)*$2; }
+			funcionNumerica								{$$ = $1 ;}
+		|	'-' expresionNumerica						{$$ = (-1)*$2; }
 		|	expresionNumerica '+' expresionNumerica     {$$ = $1 + $3 ; }
 		| 	expresionNumerica '-' expresionNumerica	  	{$$ = $1 - $3 ; }
 		| 	expresionNumerica '*' expresionNumerica     {$$ = $1 * $3 ; }
 		| 	expresionNumerica '/' expresionNumerica     {$$ = $1 / $3 ; }
-		| 	expresionNumerica '^' expresionNumerica     {$$ = pow($1,$3) ; }
+		| 	expresionNumerica '^' expresionNumerica     {$$ = pow($1,$3) ; } 
     	| 	'(' expresionNumerica ')'					{$$ = $2 ;}
-    	| 	DIGITO      								{$$ = $1 ;}
+    	| 	DIGITO      								{$$ = $1 ;}	
+		| 	variable									{$$ = getNumerico($1);}		
 		;
 expresionLogica:	
 			'!'expresionLogica						{$$ = !$2;}
 		|	expresionLogica '|' expresionLogica     {$$ = $1 | $3 ; }
 		| 	expresionLogica '&' expresionLogica	  	{$$ = $1 & $3 ; }
-		| 	expresionLogica '>' expresionLogica     {$$ = $1 > $3 ; }
-		| 	expresionLogica '>=' expresionLogica    {$$ = $1 >= $3 ; }
 		| 	expresionNumerica '<' expresionNumerica     {$$ = $1 < $3 ; }
-		| 	expresionNumerica '<=' expresionNumerica    {$$ = $1 <= $3 ; }
 		| 	expresionCaracter '<' expresionCaracter     {$$ = $1 < $3 ; }
-		| 	expresionCaracter '<=' expresionCaracter    {$$ = $1 <= $3 ; }
-		| 	expresion '==' expresion    {$$ = $1 == $3 ; }
-		| 	expresion '!=' expresion    {$$ = $1 != $3 ; }
+		| 	expresionNumerica '<''=' expresionNumerica    {$$ = $1 <= $4 ; }
+		| 	expresionCaracter '<''=' expresionCaracter    {$$ = $1 <= $4 ; }
+		| 	expresionNumerica '>''=' expresionNumerica    {$$ = $1 >= $4 ; }
+		| 	expresionCaracter '>''=' expresionCaracter    {$$ = $1 >= $4 ; }
+		| 	expresionNumerica '>' expresionNumerica    {$$ = $1 > $3 ; }
+		| 	expresionCaracter '>' expresionCaracter    {$$ = $1 > $3 ; }
+		| 	expresionLogica '=''=' expresionLogica    {$$ = $1 == $4 ; }
+		| 	expresionNumerica '=''=' expresionNumerica    {$$ = $1 == $4 ; }
+		| 	expresionCaracter '=''=' expresionCaracter    {$$ = $1 == $4 ; }
+		| 	expresionLogica '!''=' expresionLogica    {$$ = $1 != $4 ; }
+		| 	expresionNumerica '!''=' expresionNumerica    {$$ = $1 != $4 ; }
+		| 	expresionCaracter '!''=' expresionCaracter    {$$ = $1 != $4 ; }
 		| 	'(' expresionLogica ')'					{$$ = $2 ;} 
     	| 	BOOLEANO      							{$$ = $1 ;}
+		| 	variable									{$$ = getLogico($1);}
+
 		;
 expresionCaracter:	
 			expresionCaracter '+' expresionCaracter     {$$ = $1 + $3 ; }
@@ -141,6 +168,13 @@ expresionCaracter:
 		| 	expresionCaracter '/' expresionCaracter     {$$ = $1 / $3 ; }
     	| 	'(' expresionCaracter ')'					{$$ = $2 ;}
     	| 	CARACTER      								{$$ = $1 ;}
+		| 	variable									{$$ = getCaracter($1);}
+
+		;
+expresionCadena:
+			expresionCaracter expresionCadena			{$$ = $1 + $2}
+		| 	""											{$$ = $1}
+		| 	variable									{$$ = getCadena($1);}
 		;
 funcionNumerica:
 			SIN '(' expresionNumerica ')'							{$$ = sin($3) ; }
@@ -151,21 +185,104 @@ funcionNumerica:
 		|	ARCTG '(' expresionNumerica ')' 						{$$ = atan($3); }
 		|	LOG '('expresionNumerica ',' expresionNumerica  ')'		{$$ = log10($5) / log10($3); }
 		;
-
-
-cadena:
-			'"' CADENACARAC '"'	{$$ = "$2"}
-		|	'"' CADENACARAC '"' ',' 
-		|	
-imprimir:
-			PRINTF '(' cadena ')'
+variable:
+			NOMBRE		{$$ = $1;}
 		;
-
-
 
 %%
 
-void poper(char c){
+
+// Funcion que permite declarar variables
+void declara(char *clave){
+	int i;
+	for (i = 0; i < num_variable; i++){
+		if(strcmp(variables[i].clave,clave) == 0){
+			return
+		}
+	}
+	variables[num_variable].clave = clave;
+	num_variable++;
+}
+
+// Dar el valor numerico a la variable numerica
+void setNumerico(char *clave, double valor){
+	int i;
+	for (i = 0; i < num_variable; i++){
+		if(strcmp(variables[i].clave,clave) == 0){
+			variable.numerico = valor;
+		}
+	}
+}
+
+// Dar el valor caracter a la variable caracter
+void setCaracter(char *clave, double valor){
+	int i;
+	for (i = 0; i < num_variable; i++){
+		if(strcmp(variables[i].clave,clave) == 0){
+			variable.caracter = valor;
+		}
+	}
+}
+
+// Dar el valor cadena a la variable cadena
+void setCadena(char *clave, char *valor){
+	int i;
+	for (i = 0; i < num_variable; i++){
+		if(strcmp(variables[i].clave,clave) == 0){
+			variable.cadena = *valor;
+		}
+	}
+}
+
+// Dar el valor logico a la variable logica
+void setLogico(char *clave, int valor){
+	int i;
+	for (i = 0; i < num_variable; i++){
+		if(strcmp(variables[i].clave,clave) == 0){
+			variable.logico = logico;
+		}
+	}
+}
+
+double getNumerico(char *clave){
+	int i;
+	for(i = 0; i<num_variable;i++){
+		if(strcmp(variables.clave,clave) == 0){
+			return variables.numerico;
+		}
+	}
+	return NULL;
+}
+}
+char getCaracter(char *clave){
+	int i;
+	for(i = 0; i<num_variable;i++){
+		if(strcmp(variables.clave,clave) == 0){
+			return variables.caracter;
+		}
+	}
+	return NULL;
+}
+char *getCadena(char *clave){
+	int i;
+	for(i = 0; i<num_variable;i++){
+		if(strcmp(variables.clave,clave) == 0){
+			return variables.cadena;
+		}
+	}
+	return NULL;
+}
+int getLogico(char *clave){
+	int i;
+	for(i = 0; i<num_variable;i++){
+		if(strcmp(variables.clave,clave) == 0){
+			return variables.logico;
+		}
+	}
+	return NULL;
+}
+
+/*void poper(char c){
     switch(c){
         case '+'  : printf("<+> ");
                     break;
@@ -179,7 +296,7 @@ void poper(char c){
 					break;
 	}
     return;
-}
+}*/
 
 int yyerror(char const *s)
 {
