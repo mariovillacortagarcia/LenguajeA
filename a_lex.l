@@ -1,24 +1,16 @@
-%{c
+%{
 	#include<stdio.h>
 	#include"y.tab.h"
 	int pos = 0;
 %}
 %%
-[0-9]+(\.[0-9]+)?   {
-			pos++;
-			yylval.real = atof(yytext);
-			return (DIGITO);
-}
-([a-z]|[A-Z]|"_")+ {
-			strcpy(yyval.cadenaReservada,yytext);
-			return (NOMBRE);
-}
-true    {
+
+"true"    {
 			pos++;
 			yylval.logico = 1;
 			return (BOOLEANO);
 }
-false   {
+"false"   {
 			pos++;
 			yylval.logico = 0;
 			return (BOOLEANO);
@@ -30,19 +22,19 @@ false   {
 }
 "if" {
 			pos++;
-			return (IF)
+			return (IF);
 }
 "else" {
 			pos++;
-			return (ELSE)
+			return (ELSE);
 }
 "do" {
 			pos++;
-			return (DO)
+			return (DO);
 }
 "while" {
 			pos++;
-			return (WHILE)
+			return (WHILE);
 }
 "printf" {
 			pos++;
@@ -50,7 +42,7 @@ false   {
 }
 "scanf" {
 			pos++;
-			return (SCANF));
+			return (SCANF);
 }
 "var" {
 			pos++;
@@ -91,6 +83,15 @@ false   {
 "log" {
 			pos++;
 			return (LOG);
+}
+[0-9]+(\.[0-9]+)?   {
+			pos++;
+			yylval.real = atof(yytext);
+			return (DIGITO);
+}
+([a-z]|[A-Z]|"_")+ {
+			strcpy(yylval.cadena,yytext);
+			return (NOMBRE);
 }
 ("+"|"-"|"*"|"/"|"^"|"("|")"|";"|"|"|"&"|"!"|">"|">="|"<"|"<="|"=="|"!=") {
 	return yytext[0];

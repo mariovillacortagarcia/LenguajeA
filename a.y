@@ -6,7 +6,7 @@
 
 #define NUM_VARIABLES 100
 
-typedef struct Par{
+struct Par{
 	char *clave;
 	double numerico;
 	char caracter;
@@ -14,10 +14,10 @@ typedef struct Par{
 	int logico;
 };
 void declara(char*);
-void setNumerico(char,double);
-void setCaracter(char,char);
-void setCadena(char,char*);
-void setLogico(char,int);
+void setNumerico(char*,double);
+void setCaracter(char*,char);
+void setCadena(char*,char*);
+void setLogico(char*,int);
 double getNumerico(char*);
 char getCaracter(char*);
 char* getCadena(char*);
@@ -26,14 +26,14 @@ int yyerror(char const *);
 int yylex(void);
 
 extern int pos;
-Par variables[NUM_VARIABLES];
+struct Par variables[NUM_VARIABLES];
 int num_variable = 0;
 %}
 
-%union {
+%union	{
 	double real;
     char caracter;
-	char cadenaReservada[1000];
+	char cadena[1000];
     int logico;
 }
 
@@ -41,7 +41,7 @@ int num_variable = 0;
 %token<real> DIGITO
 %token<logico> BOOLEANO
 %token<caracter> CARACTER
-%token<cadenaReservada> CADENA
+%token<cadena> CADENA
 %token IF
 %token ELSE
 %token DO
@@ -59,12 +59,15 @@ int num_variable = 0;
 %token MCD
 %token LOG
 %token CADENACARAC
-%token<cadenaReservada> NOMBRE
+%token<cadena> NOMBRE
 
-%type<real> expresionNumerica
+%type<real> expresionNumerica funcionNumerica
 %type<logico> expresionLogica
 %type<caracter> expresionCaracter
-%type<cadenaReservada> expresionCadena
+%type<cadena> expresionCadena sentencia sentenciaSimple sentenciaBloque declaracion asignacion bucle metodo condicional condicionalSimple condicionalDoble bucleMientras bucleHazMientras
+%type<cadena> variable 
+
+
 
 
 
@@ -103,7 +106,7 @@ declaracion:
 asignacion:
 			variable '=' expresionLogica	{setLogico($1,$3);}
 		|	variable '=' expresionNumerica	{setNumerico($1,$3);}
-		|	variable '=' expresionCaracter	{setCara($1,$3);}
+		|	variable '=' expresionCaracter	{setCaracter($1,$3);}
 		|	variable '=' expresionCadena	{setCadena($1, $3);}
 		;
 condicional:
@@ -111,17 +114,17 @@ condicional:
 		|	condicionalDoble
 		;
 condicionalSimple:
-			IF '(' expresionLogica ')' sentencia	{if($3)$5}
+			IF '(' expresionLogica ')'  sentencia 	{if($3) ejecuta($5);}
 		;
 condicionalDoble: 
-			condicionalSimple ELSE sentencia	{$1 else $3}
+			IF '(' expresionLogica ')'  sentencia ELSE  sentencia 	{if($3)ejecuta($5);else ejecuta($7);}
 		;
 bucle:
 		bucleMientras
 	|	bucleHazMientras
 	;		
 bucleMientras:
-			WHILE '(' expresionLogica ')' sentencia		{while($3) $5} 
+			WHILE '(' expresionLogica ')' sentencia	{while($3) $5} 
 		;
 bucleHazMientras:
 			DO sentencia WHILE '(' expresionLogica ')'	{do $2 while($5)}
@@ -172,8 +175,8 @@ expresionCaracter:
 
 		;
 expresionCadena:
-			expresionCaracter expresionCadena			{$$ = $1 + $2}
-		| 	""											{$$ = $1}
+			expresionCaracter expresionCadena			{$$ = $1 + $2;}
+		| 	""											{$$ = "";}
 		| 	variable									{$$ = getCadena($1);}
 		;
 funcionNumerica:
@@ -209,7 +212,7 @@ void setNumerico(char *clave, double valor){
 	int i;
 	for (i = 0; i < num_variable; i++){
 		if(strcmp(variables[i].clave,clave) == 0){
-			variable.numerico = valor;
+			variables[i].numerico = valor;
 		}
 	}
 }
@@ -219,7 +222,7 @@ void setCaracter(char *clave, double valor){
 	int i;
 	for (i = 0; i < num_variable; i++){
 		if(strcmp(variables[i].clave,clave) == 0){
-			variable.caracter = valor;
+			variables[i].caracter = valor;
 		}
 	}
 }
@@ -229,7 +232,7 @@ void setCadena(char *clave, char *valor){
 	int i;
 	for (i = 0; i < num_variable; i++){
 		if(strcmp(variables[i].clave,clave) == 0){
-			variable.cadena = *valor;
+			variables[i].cadena = *valor;
 		}
 	}
 }
@@ -239,7 +242,7 @@ void setLogico(char *clave, int valor){
 	int i;
 	for (i = 0; i < num_variable; i++){
 		if(strcmp(variables[i].clave,clave) == 0){
-			variable.logico = logico;
+			variables[i].logico = logico;
 		}
 	}
 }
@@ -247,18 +250,18 @@ void setLogico(char *clave, int valor){
 double getNumerico(char *clave){
 	int i;
 	for(i = 0; i<num_variable;i++){
-		if(strcmp(variables.clave,clave) == 0){
-			return variables.numerico;
+		if(strcmp(variables[i].clave,clave) == 0){
+			return variables[i].numerico;
 		}
 	}
 	return NULL;
 }
-}
+
 char getCaracter(char *clave){
 	int i;
 	for(i = 0; i<num_variable;i++){
-		if(strcmp(variables.clave,clave) == 0){
-			return variables.caracter;
+		if(strcmp(variables[i].clave,clave) == 0){
+			return variables[i].caracter;
 		}
 	}
 	return NULL;
@@ -266,8 +269,8 @@ char getCaracter(char *clave){
 char *getCadena(char *clave){
 	int i;
 	for(i = 0; i<num_variable;i++){
-		if(strcmp(variables.clave,clave) == 0){
-			return variables.cadena;
+		if(strcmp(variables[i].clave,clave) == 0){
+			return variables[i].cadena;
 		}
 	}
 	return NULL;
@@ -275,8 +278,8 @@ char *getCadena(char *clave){
 int getLogico(char *clave){
 	int i;
 	for(i = 0; i<num_variable;i++){
-		if(strcmp(variables.clave,clave) == 0){
-			return variables.logico;
+		if(strcmp(variables[i].clave,clave) == 0){
+			return variables[i].logico;
 		}
 	}
 	return NULL;
